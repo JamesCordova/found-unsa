@@ -13,7 +13,10 @@ ESTADOS = {  # texto + color + icono: nunca solo color
     "vencido": ("Vencido", ft.Colors.ORANGE_700, ft.Icons.TIMER_OFF),
     "cancelado": ("Cancelado", ft.Colors.GREY_600, ft.Icons.BLOCK),
 }
-ANCHO_MAX = 600
+# Columnas (de 12) que ocupa el contenido según el ancho de pantalla: en celular todo el ancho,
+# en pantallas grandes una columna central.
+COLUMNAS_CONTENIDO = {"xs": 12, "lg": 8, "xl": 6}
+COLUMNAS_LOGIN = {"xs": 12, "sm": 9, "md": 6, "lg": 4}
 
 _GF = "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/"
 FUENTES = {"Poppins": _GF + "Poppins-Regular.ttf", "PoppinsBold": _GF + "Poppins-Bold.ttf"}

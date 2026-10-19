@@ -14,7 +14,7 @@ from app.ui.pantallas.perfil import pantalla_perfil
 from app.ui.pantallas.publicar import pantalla_publicar
 from app.ui.pantallas.recepcion import pantalla_recepcion
 from app.ui.pantallas.reclamar import pantalla_reclamar
-from app.ui.tema import ANCHO_MAX, aplicar_tema
+from app.ui.tema import COLUMNAS_CONTENIDO, COLUMNAS_LOGIN, aplicar_tema
 
 # Pestañas de la barra inferior según el rol: (etiqueta, icono, pantalla)
 PESTANIAS_USUARIO = [
@@ -90,8 +90,11 @@ class App:
         if not self.user:
             p.appbar = ft.AppBar(actions=[boton_tema(self)], bgcolor=ft.Colors.TRANSPARENT)
             p.add(ft.SafeArea(expand=True, content=ft.Column(
-                [ft.Container(pantalla_login(self), width=min(420, p.width or 420), padding=16)],
-                alignment="center", horizontal_alignment="center", scroll=ft.ScrollMode.AUTO, expand=True)))
+                [ft.ResponsiveRow(
+                    [ft.Container(pantalla_login(self), padding=16, col=COLUMNAS_LOGIN)],
+                    alignment=ft.MainAxisAlignment.CENTER)],
+                alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+                scroll=ft.ScrollMode.AUTO, expand=True)))
             p.update()
             return
         pestanias = self.pestanias()
@@ -113,8 +116,9 @@ class App:
             cuerpo = VISTAS_SECUNDARIAS[nombre](self, dato)
         else:
             cuerpo = pestanias[self.tab][2](self)
-        ancho = min(ANCHO_MAX, p.width or ANCHO_MAX)
-        p.add(ft.SafeArea(expand=True, content=ft.Row(
-            [ft.Container(cuerpo, width=ancho, padding=16)], alignment="center", vertical_alignment="start",
-            scroll=ft.ScrollMode.AUTO, expand=True)))
+        p.add(ft.SafeArea(expand=True, content=ft.Column(
+            [ft.ResponsiveRow(
+                [ft.Container(cuerpo, padding=16, col=COLUMNAS_CONTENIDO)],
+                alignment=ft.MainAxisAlignment.CENTER)],
+            horizontal_alignment=ft.CrossAxisAlignment.STRETCH, scroll=ft.ScrollMode.AUTO, expand=True)))
         p.update()

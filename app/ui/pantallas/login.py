@@ -31,18 +31,18 @@ def pantalla_login(app) -> ft.Control:
     clave.on_submit = enviar
     texto_boton = "Crear cuenta" if app.modo_registro else "Ingresar"
     return ft.Column([
-        marca(grande=True),
+        ft.Container(marca(grande=True), alignment=ft.Alignment.CENTER),
         ft.Text("Devuelve objetos perdidos del campus mediante un punto oficial de custodia.",
                 size=16, text_align=ft.TextAlign.CENTER, color=ft.Colors.ON_SURFACE_VARIANT),
         ft.Card(ft.Container(ft.Column([
             ft.Text("Crear cuenta" if app.modo_registro else "Iniciar sesión", size=20, weight="bold"),
             nombre, email, clave, error,
             ft.Row([boton(texto_boton, enviar)]),
-        ], spacing=12), padding=20)),
+        ], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH), padding=20)),
         ft.TextButton("Ya tengo cuenta" if app.modo_registro else "No tengo cuenta: registrarme",
                       on_click=alternar),
         ft.Container(ft.Column([
             ft.Text("Cuentas de demostración (contraseña 1234)", weight="bold", size=14),
             ft.Text("usuario@ · otro@ · funcionario@ · admin@  +  unsa.edu.pe", size=14)], spacing=4),
             padding=12, bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST, border_radius=8),
-    ], spacing=16, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+    ], spacing=16, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
