@@ -13,7 +13,7 @@ MOMENTOS = {"manana": ("Mañana", 9), "tarde": ("Tarde", 15), "noche": ("Noche",
 
 
 def pantalla_publicar(app) -> ft.Control:
-    puntos = db.puntos_activos()
+    puntos = db.puntos_activos(app.user["id"])
     est = {"cat": "", "punto": puntos[0]["id"] if puntos else None, "dia": "hoy", "fecha": None,
            "momento": "tarde"}
 

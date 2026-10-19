@@ -6,7 +6,11 @@ from app.ui.aplicacion import App
 
 
 def main(page: ft.Page):
-    datos.iniciar()
+    try:
+        datos.iniciar()  # comprueba que el archivo .env esté configurado
+    except datos.ConfiguracionError as e:
+        page.add(ft.SafeArea(ft.Container(ft.Text(str(e), size=18), padding=24)))
+        return
     App(page)
 
 

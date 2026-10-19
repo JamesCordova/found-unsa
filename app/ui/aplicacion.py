@@ -2,7 +2,7 @@
 import flet as ft
 
 from app import datos as db
-from app.datos import ReglaError
+from app.datos import ReglaError, SesionExpiradaError, SinConexionError
 from app.ui.componentes import boton_tema, marca
 from app.ui.pantallas.admin import pantalla_admin
 from app.ui.pantallas.bitacora import pantalla_bitacora
@@ -15,6 +15,7 @@ from app.ui.pantallas.perfil import pantalla_perfil
 from app.ui.pantallas.publicar import pantalla_publicar
 from app.ui.pantallas.recepcion import pantalla_recepcion
 from app.ui.pantallas.reclamar import pantalla_reclamar
+from app.ui.pantallas.sin_conexion import pantalla_sin_conexion
 from app.ui.tema import COLUMNAS_CONTENIDO, COLUMNAS_LOGIN, aplicar_tema
 
 # Pestañas de la barra inferior según el rol: (etiqueta, icono, pantalla)
@@ -42,6 +43,7 @@ class App:
         self.tab = 0
         self.vista: tuple | None = None  # pantalla secundaria, p. ej. ("detalle", objeto)
         self.modo_registro = False
+        self.mensaje_login = ""
         self.admin_seccion = "usuarios"
         self.portapapeles = ft.Clipboard()
         page.services.append(self.portapapeles)
@@ -59,7 +61,11 @@ class App:
         """Ejecuta una acción de negocio y muestra el error de regla si lo hay."""
         try:
             accion()
-        except ReglaError as e:
+        except SesionExpiradaError as e:
+            self.aviso(str(e), error=True)
+            self.cerrar_sesion()
+            return
+        except ReglaError as e:  # incluye SinConexionError: el mensaje ya explica qué hacer
             self.aviso(str(e), error=True)
             return
         if ok:
@@ -89,6 +95,11 @@ class App:
         self.render()
 
     def cerrar_sesion(self):
+        if self.user:
+            try:
+                db.cerrar_sesion(self.user["id"])
+            except ReglaError:
+                pass  # cerrar localmente basta aunque no haya conexión
         self.user, self.tab, self.vista = None, 0, None
         self.render()
 
@@ -115,6 +126,31 @@ class App:
         p.update()
 
     def render(self):
+        """Dibuja la pantalla; si falla la red muestra el aviso con «Reintentar» y si expira la sesión vuelve al login."""
+        try:
+            self._dibujar()
+        except SesionExpiradaError as e:
+            self.user, self.tab, self.vista = None, 0, None
+            self.mensaje_login = str(e)
+            self._dibujar()
+        except SinConexionError as e:
+            self._dibujar_sin_conexion(str(e))
+
+    def _dibujar_sin_conexion(self, mensaje: str):
+        p = self.page
+        p.controls.clear()
+        p.bgcolor = None
+        p.navigation_bar = None
+        p.appbar = ft.AppBar(title=marca(), center_title=True, toolbar_height=64, actions=[
+            ft.IconButton(ft.Icons.LOGOUT, tooltip="Cerrar sesión", on_click=lambda _: self.cerrar_sesion())]
+            if self.user else [boton_tema(self)])
+        p.add(ft.SafeArea(expand=True, content=ft.Column(
+            [ft.ResponsiveRow([ft.Container(pantalla_sin_conexion(self, mensaje), padding=16, col=COLUMNAS_LOGIN)],
+                              alignment=ft.MainAxisAlignment.CENTER)],
+            horizontal_alignment=ft.CrossAxisAlignment.STRETCH, scroll=ft.ScrollMode.AUTO, expand=True)))
+        p.update()
+
+    def _dibujar(self):
         p = self.page
         p.controls.clear()
         p.appbar = None
@@ -149,7 +185,7 @@ class App:
                                  on_click=self.alternar_tema),
                 ft.PopupMenuItem(icon=ft.Icons.LOGOUT, content="Cerrar sesión",
                                  on_click=lambda _: self.cerrar_sesion())])])
-        pendientes = len(db.pendientes()) if self.user["rol"] != "usuario" else 0
+        pendientes = len(db.pendientes(self.user["id"])) if self.user["rol"] != "usuario" else 0
         p.navigation_bar = ft.NavigationBar(
             selected_index=self.tab,
             destinations=[ft.NavigationBarDestination(

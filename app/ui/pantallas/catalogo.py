@@ -2,13 +2,14 @@
 import flet as ft
 
 from app import datos as db
+from app.datos import SinConexionError
 from app.ui.componentes import (abrir_selector_punto, campo, campo_selector, es_nuevo, hace, imagen_objeto,
                                 titulo, vacio)
 from app.ui.tema import CATEGORIA_ICONOS
 
 
 def pantalla_catalogo(app) -> ft.Control:
-    puntos = db.puntos_activos()
+    puntos = db.puntos_activos(app.user["id"])
     chips = ft.Row(spacing=8, scroll=ft.ScrollMode.AUTO)
     lista = ft.Column(spacing=8)
     contador = ft.Text("", size=14, color=ft.Colors.ON_SURFACE_VARIANT)
@@ -21,7 +22,13 @@ def pantalla_catalogo(app) -> ft.Control:
     def refrescar():
         """Reconstruye chips, contador y lista según los filtros actuales."""
         f = app.filtro
-        items = db.catalogo(f["categoria"] or None, f["punto"] or None, f["texto"])
+        try:
+            items = db.catalogo(app.user["id"], f["categoria"] or None, f["punto"] or None, f["texto"])
+        except SinConexionError as e:  # búsqueda en vivo: el aviso va en la lista, con botón de reintentar
+            lista.controls = [vacio(str(e), ft.Icons.WIFI_OFF),
+                              ft.Row([ft.OutlinedButton("Reintentar", icon=ft.Icons.REFRESH, on_click=reintentar)])]
+            contador.value = ""
+            return
         chips.controls = [ft.Chip(label=ft.Text("Todas"), leading=ft.Icon(ft.Icons.APPS),
                                   selected=not f["categoria"], on_click=lambda _: elegir_categoria(""))] + [
             ft.Chip(label=ft.Text(c), leading=ft.Icon(CATEGORIA_ICONOS[c]), selected=f["categoria"] == c,
@@ -30,6 +37,10 @@ def pantalla_catalogo(app) -> ft.Control:
         lista.controls = [tarjeta_objeto(app, o) for o in items] or [
             vacio("No hay objetos con esos filtros.\nPrueba con otra categoría o borra la búsqueda.",
                   ft.Icons.SEARCH_OFF)]
+
+    def reintentar(_):
+        refrescar()
+        app.page.update()
 
     def al_buscar(e):
         app.filtro["texto"] = e.control.value or ""
@@ -59,7 +70,7 @@ def pantalla_catalogo(app) -> ft.Control:
             app.page.update()
 
         def pintar_filtro_punto():
-            actual = int(app.filtro["punto"]) if app.filtro["punto"] else None
+            actual = app.filtro["punto"] or None
             p = next((x for x in puntos if x["id"] == actual), None)
             zona_punto.controls = [campo_selector(
                 ft.Icons.STORE_OUTLINED, p["nombre"] if p else "Todos los puntos", None,

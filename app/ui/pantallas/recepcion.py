@@ -6,7 +6,7 @@ from app.ui.componentes import boton, campo, chip_estado, hace, imagen_objeto, t
 
 
 def pantalla_recepcion(app) -> ft.Control:
-    items = db.pendientes()
+    items = db.pendientes(app.user["id"])
     tarjetas = []
     for o in items:
         detalle = campo("Detalle oculto de verificación (obligatorio)",

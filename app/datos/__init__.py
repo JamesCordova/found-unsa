@@ -1,11 +1,14 @@
-"""Capa de datos: SQLite y reglas de negocio. La interfaz solo usa esta fachada."""
-from .config import DB_PATH, DOMINIO, CATEGORIAS, ALFABETO_CODIGO, HORAS_CODIGO, MAX_RECLAMOS_ACTIVOS, MIN_DESC_RECLAMO, DIAS_PENDIENTE, DIAS_ARCHIVADO
-from .conexion import ReglaError, conectar
-from .esquema import iniciar
-from .auditoria import bitacora
-from .cuentas import registrar, iniciar_sesion, perfil
-from .publicaciones import puntos_activos, publicar, mis_publicaciones, cancelar_publicacion, pendientes, confirmar_recepcion, rechazar_publicacion
-from .catalogo import catalogo
-from .reclamos import crear_reclamo, mis_reclamos, cancelar_reclamo
-from .entregas import buscar_codigo, entregar, rechazar_reclamo
-from .administracion import usuarios, cambiar_rol, bloquear, puntos_todos, guardar_punto, activar_punto
+"""Capa de datos: Supabase (Auth + Postgres). La interfaz solo usa esta fachada.
+
+Las reglas de negocio y los permisos viven en la base (supabase/migrations); aquí solo se llama a la API.
+"""
+from .administracion import activar_punto, bloquear, cambiar_rol, guardar_punto, puntos_todos, usuarios
+from .cliente import verificar_configuracion as iniciar
+from .config import (CATEGORIAS, DEMO_CLAVE, DOMINIO, HORAS_CODIGO, MAX_RECLAMOS_ACTIVOS, MIN_CLAVE,
+                     MIN_DESC_RECLAMO)
+from .cuentas import cerrar_sesion, iniciar_sesion, perfil, reenviar_confirmacion, registrar
+from .entregas import bitacora, buscar_codigo, entregar, rechazar_reclamo
+from .errores import ConfiguracionError, ReglaError, SesionExpiradaError, SinConexionError
+from .publicaciones import (cancelar_publicacion, catalogo, confirmar_recepcion, mis_publicaciones, pendientes,
+                            publicar, puntos_activos, rechazar_publicacion)
+from .reclamos import cancelar_reclamo, crear_reclamo, mis_reclamos
