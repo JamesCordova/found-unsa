@@ -2,7 +2,8 @@
 import flet as ft
 
 from app import datos as db
-from app.ui.componentes import campo, es_nuevo, hace, imagen_objeto, titulo, vacio
+from app.ui.componentes import (abrir_selector_punto, campo, campo_selector, es_nuevo, hace, imagen_objeto,
+                                titulo, vacio)
 from app.ui.tema import CATEGORIA_ICONOS
 
 
@@ -49,14 +50,23 @@ def pantalla_catalogo(app) -> ft.Control:
                            visible=bool(app.filtro["texto"]))  # fuera del campo: no altera el centrado del texto
     filtros = [ft.Row([buscar, borrar], vertical_alignment=ft.CrossAxisAlignment.CENTER), chips]
     if len(puntos) > 1:
-        def al_elegir_punto(e):
-            app.filtro["punto"] = e.control.value or ""
+        zona_punto = ft.Column()
+
+        def elegir_punto(pid):
+            app.filtro["punto"] = str(pid) if pid else ""
+            pintar_filtro_punto()
             refrescar()
             app.page.update()
-        filtros.append(ft.Row([ft.Dropdown(
-            label="Punto de custodia", value=app.filtro["punto"], expand=True, on_select=al_elegir_punto,
-            options=[ft.DropdownOption(key="", text="Todos los puntos")] +
-                    [ft.DropdownOption(key=str(x["id"]), text=x["nombre"]) for x in puntos])]))
+
+        def pintar_filtro_punto():
+            actual = int(app.filtro["punto"]) if app.filtro["punto"] else None
+            p = next((x for x in puntos if x["id"] == actual), None)
+            zona_punto.controls = [campo_selector(
+                ft.Icons.STORE_OUTLINED, p["nombre"] if p else "Todos los puntos", None,
+                lambda _: abrir_selector_punto(app, puntos, actual, elegir_punto, con_todos=True,
+                                               titulo_dialogo="Punto de custodia"))]
+        pintar_filtro_punto()
+        filtros.append(zona_punto)
     refrescar()
     return ft.Column([titulo("Objetos en custodia", "Hallados y guardados en un punto oficial"),
                       *filtros, contador, lista], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)

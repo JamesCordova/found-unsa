@@ -124,3 +124,52 @@ def imagen_completa(app, o: dict, alto: int = 220) -> ft.Control:
         ], fit=ft.StackFit.EXPAND),  # EXPAND: la imagen ocupa todo el ancho del contenedor
         height=alto, border_radius=16, ink=True, tooltip="Toca para ver la imagen completa",
         on_click=lambda _: ver_imagen_completa(app, o))
+
+
+def abrir_selector_punto(app, puntos: list[dict], actual: int | None, al_elegir, con_todos: bool = False,
+                         titulo_dialogo: str = "Punto de entrega") -> None:
+    """Diálogo con buscador y lista desplazable; sirve igual con 2 o con cientos de puntos.
+
+    `al_elegir` recibe el id del punto, o None si se elige «Todos los puntos» (solo con `con_todos`).
+    """
+    lista = ft.ListView(spacing=0, expand=True)
+
+    def elegir(pid):
+        app.page.pop_dialog()
+        al_elegir(pid)
+
+    def llenar(texto=""):
+        buscado = texto.strip().lower()
+        visibles = [p for p in puntos if buscado in f"{p['nombre']} {p['ubicacion']}".lower()]
+        filas = []
+        if con_todos and not buscado:
+            filas.append(ft.ListTile(
+                leading=ft.Icon(ft.Icons.CHECK_CIRCLE if actual is None else ft.Icons.APPS),
+                title=ft.Text("Todos los puntos"), on_click=lambda _: elegir(None)))
+        filas += [ft.ListTile(
+            leading=ft.Icon(ft.Icons.CHECK_CIRCLE if p["id"] == actual else ft.Icons.STORE_OUTLINED),
+            title=ft.Text(p["nombre"]), subtitle=ft.Text(f"{p['ubicacion']} · {p['horario']}"),
+            on_click=lambda _, pid=p["id"]: elegir(pid)) for p in visibles]
+        lista.controls = filas or [ft.Text("Ningún punto coincide con la búsqueda.", size=14)]
+
+    def al_buscar(e):
+        llenar(e.control.value or "")
+        app.page.update()
+    llenar()
+    app.page.show_dialog(ft.AlertDialog(
+        title=ft.Text(titulo_dialogo),
+        content=ft.Container(ft.Column([campo("Buscar por nombre o ubicación", prefix_icon=ft.Icons.SEARCH,
+                                              on_change=al_buscar, autofocus=True),
+                                        ft.Container(lista, height=320)], spacing=8), width=480),
+        actions=[ft.TextButton("Cerrar", on_click=lambda _: app.page.pop_dialog())]))
+
+
+def campo_selector(icono, principal: str, secundario: str | None, al_tocar) -> ft.Control:
+    """Campo tocable con aspecto de entrada de texto (muestra la opción elegida)."""
+    textos = [ft.Text(principal, weight="bold", size=16)]
+    if secundario:
+        textos.append(ft.Text(secundario, size=13, color=ft.Colors.ON_SURFACE_VARIANT))
+    return ft.Container(
+        ft.Row([ft.Icon(icono), ft.Column(textos, spacing=2, expand=True), ft.Icon(ft.Icons.UNFOLD_MORE)],
+               spacing=12),
+        padding=12, border_radius=12, ink=True, border=ft.Border.all(1, ft.Colors.OUTLINE), on_click=al_tocar)

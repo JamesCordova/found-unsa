@@ -6,7 +6,7 @@ import flet as ft
 
 from app import datos as db
 from app.datos import ReglaError
-from app.ui.componentes import boton, caja_aviso, campo, titulo
+from app.ui.componentes import abrir_selector_punto, boton, caja_aviso, campo, campo_selector, titulo
 from app.ui.tema import CATEGORIA_ICONOS
 
 MOMENTOS = {"manana": ("Mañana", 9), "tarde": ("Tarde", 15), "noche": ("Noche", 20)}
@@ -112,14 +112,9 @@ def pantalla_publicar(app) -> ft.Control:
 
     def pintar_puntos():
         p = punto_actual()
-        detalle = (ft.Column([ft.Text(p["nombre"], weight="bold", size=16),
-                              ft.Text(f"{p['ubicacion']} · {p['horario']}", size=13,
-                                      color=ft.Colors.ON_SURFACE_VARIANT)], spacing=2, expand=True)
-                   if p else ft.Text("Elige un punto de entrega", size=16, expand=True))
-        zona_punto.controls = [ft.Container(
-            ft.Row([ft.Icon(ft.Icons.STORE), detalle, ft.Icon(ft.Icons.UNFOLD_MORE)], spacing=12),
-            padding=12, border_radius=12, ink=True, border=ft.Border.all(1, ft.Colors.OUTLINE),
-            on_click=lambda _: abrir_selector())]
+        zona_punto.controls = [campo_selector(
+            ft.Icons.STORE, p["nombre"] if p else "Elige un punto de entrega",
+            f"{p['ubicacion']} · {p['horario']}" if p else None, lambda _: abrir_selector())]
 
     def elegir_punto(pid):
         est["punto"] = pid
@@ -127,28 +122,7 @@ def pantalla_publicar(app) -> ft.Control:
         app.page.update()
 
     def abrir_selector():
-        """Diálogo con buscador y lista desplazable de todos los puntos."""
-        lista = ft.ListView(spacing=0, expand=True)
-
-        def llenar(texto=""):
-            buscado = texto.strip().lower()
-            visibles = [p for p in puntos if buscado in f"{p['nombre']} {p['ubicacion']}".lower()]
-            lista.controls = [ft.ListTile(
-                leading=ft.Icon(ft.Icons.CHECK_CIRCLE if p["id"] == est["punto"] else ft.Icons.STORE_OUTLINED),
-                title=ft.Text(p["nombre"]), subtitle=ft.Text(f"{p['ubicacion']} · {p['horario']}"),
-                on_click=lambda _, pid=p["id"]: (app.page.pop_dialog(), elegir_punto(pid))) for p in visibles] or [
-                ft.Text("Ningún punto coincide con la búsqueda.", size=14)]
-
-        def al_buscar(e):
-            llenar(e.control.value or "")
-            app.page.update()
-        llenar()
-        app.page.show_dialog(ft.AlertDialog(
-            title=ft.Text("Punto de entrega"),
-            content=ft.Container(ft.Column([campo("Buscar por nombre o ubicación", prefix_icon=ft.Icons.SEARCH,
-                                                  on_change=al_buscar, autofocus=True),
-                                            ft.Container(lista, height=320)], spacing=8), width=480),
-            actions=[ft.TextButton("Cerrar", on_click=lambda _: app.page.pop_dialog())]))
+        abrir_selector_punto(app, puntos, est["punto"], elegir_punto)
 
     pintar_categorias()
     pintar_puntos()
