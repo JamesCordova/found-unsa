@@ -3,7 +3,7 @@ import flet as ft
 
 from app import datos as db
 from app.datos import ReglaError
-from app.ui.componentes import atras, boton_tema, marca
+from app.ui.componentes import boton_tema, marca
 from app.ui.pantallas.admin import pantalla_admin
 from app.ui.pantallas.bitacora import pantalla_bitacora
 from app.ui.pantallas.catalogo import pantalla_catalogo
@@ -29,8 +29,10 @@ PESTANIAS_STAFF = [
     ("Entrega", ft.Icons.HANDSHAKE, pantalla_entrega),
     ("Bitácora", ft.Icons.RECEIPT_LONG, pantalla_bitacora),
 ]
+PESTANIA_PERFIL = ("Perfil", ft.Icons.PERSON, pantalla_perfil)
 PESTANIA_ADMIN = ("Admin", ft.Icons.ADMIN_PANEL_SETTINGS, pantalla_admin)
 VISTAS_SECUNDARIAS = {"detalle": pantalla_detalle, "reclamar": pantalla_reclamar}
+TITULOS_VISTA = {"detalle": "Detalle del objeto", "reclamar": "Reclamar objeto"}
 
 
 class App:
@@ -40,6 +42,9 @@ class App:
         self.tab = 0
         self.vista: tuple | None = None  # pantalla secundaria, p. ej. ("detalle", objeto)
         self.modo_registro = False
+        self.admin_seccion = "usuarios"
+        self.portapapeles = ft.Clipboard()
+        page.services.append(self.portapapeles)
         self.filtro = {"categoria": "", "punto": "", "texto": ""}
         aplicar_tema(page)
         page.on_resize = lambda _: self.render()
@@ -91,7 +96,7 @@ class App:
     def pestanias(self) -> list:
         if self.user["rol"] == "usuario":
             return PESTANIAS_USUARIO
-        return PESTANIAS_STAFF + ([PESTANIA_ADMIN] if self.user["rol"] == "admin" else [])
+        return PESTANIAS_STAFF + ([PESTANIA_ADMIN] if self.user["rol"] == "admin" else []) + [PESTANIA_PERFIL]
 
     def render(self):
         p = self.page
@@ -110,8 +115,14 @@ class App:
             return
         pestanias = self.pestanias()
         self.tab = min(self.tab, len(pestanias) - 1)
+        if self.vista:  # pantalla secundaria: flecha grande a la izquierda y título centrado
+            titulo_barra = ft.Text(TITULOS_VISTA[self.vista[0]], size=20, weight="bold")
+            flecha = ft.IconButton(ft.Icons.ARROW_BACK, icon_size=28, tooltip="Volver",
+                                   on_click=lambda _: self.ir(vista=None))
+        else:
+            titulo_barra, flecha = marca(), None
         p.appbar = ft.AppBar(
-            title=marca(), center_title=False,
+            title=titulo_barra, center_title=True, leading=flecha, leading_width=64, toolbar_height=64,
             actions=[ft.PopupMenuButton(tooltip="Ajustes", items=[
                 ft.PopupMenuItem(content=self.user["nombre"], disabled=True),
                 ft.PopupMenuItem(icon=ft.Icons.BRIGHTNESS_6, content="Cambiar tema claro/oscuro",

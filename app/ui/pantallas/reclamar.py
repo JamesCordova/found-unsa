@@ -2,7 +2,7 @@
 import flet as ft
 
 from app import datos as db
-from app.ui.componentes import atras, boton, campo, titulo
+from app.ui.componentes import boton, campo, titulo
 
 
 def pantalla_reclamar(app, o: dict) -> ft.Control:
@@ -16,8 +16,8 @@ def pantalla_reclamar(app, o: dict) -> ft.Control:
                    lambda: app.ir(tab=2, vista=None))
 
     return ft.Column([
-        atras(app), titulo("Reclamar objeto", o["descripcion_publica"]),
+        titulo("Reclamar objeto", o["descripcion_publica"]),
         ft.Text("El funcionario comparará tu descripción con un detalle que solo el dueño conoce y verificará "
                 "tu identidad en persona. El código dura 48 horas.", size=16),
         desc, ft.Row([boton("Generar código", enviar, ft.Icons.KEY)]),
-    ], spacing=12)
+    ], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)

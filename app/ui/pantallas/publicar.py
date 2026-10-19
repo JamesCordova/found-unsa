@@ -104,19 +104,35 @@ def pantalla_publicar(app) -> ft.Control:
         hallazgo = datetime.combine(d, time(MOMENTOS[est["momento"]][1]))
         return min(hallazgo, datetime.now()).strftime("%Y-%m-%d %H:%M")  # nunca en el futuro
 
-    # --- punto de entrega: tarjetas con ubicación y horario ---
-    tarjetas_punto = ft.Column(spacing=8)
+    # --- punto de entrega: con pocos, tarjetas; con muchos, un selector con búsqueda ---
+    UMBRAL_TARJETAS = 3
+    zona_punto = ft.Column(spacing=8)
+
+    def punto_actual() -> dict | None:
+        return next((p for p in puntos if p["id"] == est["punto"]), None)
+
+    def datos_punto(p: dict) -> ft.Control:
+        return ft.Column([ft.Text(p["nombre"], weight="bold", size=16),
+                          ft.Text(f"{p['ubicacion']} · {p['horario']}", size=13,
+                                  color=ft.Colors.ON_SURFACE_VARIANT)], spacing=2, expand=True)
 
     def pintar_puntos():
-        tarjetas_punto.controls = []
+        if len(puntos) > UMBRAL_TARJETAS:  # selector compacto: ocupa lo mismo con 4 o con 400 puntos
+            p = punto_actual()
+            zona_punto.controls = [ft.Container(
+                ft.Row([ft.Icon(ft.Icons.STORE), datos_punto(p) if p else ft.Text("Elige un punto", expand=True),
+                        ft.Icon(ft.Icons.UNFOLD_MORE)], spacing=12),
+                padding=12, border_radius=12, ink=True, border=ft.Border.all(1, ft.Colors.OUTLINE),
+                on_click=lambda _: abrir_selector()),
+                ft.Text(f"{len(puntos)} puntos disponibles. Toca para buscar o cambiar.", size=13,
+                        color=ft.Colors.ON_SURFACE_VARIANT)]
+            return
+        zona_punto.controls = []
         for p in puntos:
             activo = est["punto"] == p["id"]
-            tarjetas_punto.controls.append(ft.Container(
+            zona_punto.controls.append(ft.Container(
                 ft.Row([ft.Icon(ft.Icons.RADIO_BUTTON_CHECKED if activo else ft.Icons.RADIO_BUTTON_UNCHECKED,
-                                color=ft.Colors.INDIGO if activo else ft.Colors.OUTLINE),
-                        ft.Column([ft.Text(p["nombre"], weight="bold", size=16),
-                                   ft.Text(f"{p['ubicacion']} · {p['horario']}", size=13,
-                                           color=ft.Colors.ON_SURFACE_VARIANT)], spacing=2, expand=True)],
+                                color=ft.Colors.INDIGO if activo else ft.Colors.OUTLINE), datos_punto(p)],
                        spacing=12),
                 padding=12, border_radius=12, ink=True,
                 border=ft.Border.all(2 if activo else 1, ft.Colors.INDIGO if activo else ft.Colors.OUTLINE_VARIANT),
@@ -126,6 +142,30 @@ def pantalla_publicar(app) -> ft.Control:
         est["punto"] = pid
         pintar_puntos()
         app.page.update()
+
+    def abrir_selector():
+        """Diálogo con buscador y lista desplazable de todos los puntos."""
+        lista = ft.ListView(spacing=0, expand=True)
+
+        def llenar(texto=""):
+            buscado = texto.strip().lower()
+            visibles = [p for p in puntos if buscado in f"{p['nombre']} {p['ubicacion']}".lower()]
+            lista.controls = [ft.ListTile(
+                leading=ft.Icon(ft.Icons.CHECK_CIRCLE if p["id"] == est["punto"] else ft.Icons.STORE_OUTLINED),
+                title=ft.Text(p["nombre"]), subtitle=ft.Text(f"{p['ubicacion']} · {p['horario']}"),
+                on_click=lambda _, pid=p["id"]: (app.page.pop_dialog(), elegir_punto(pid))) for p in visibles] or [
+                ft.Text("Ningún punto coincide con la búsqueda.", size=14)]
+
+        def al_buscar(e):
+            llenar(e.control.value or "")
+            app.page.update()
+        llenar()
+        app.page.show_dialog(ft.AlertDialog(
+            title=ft.Text("Punto de entrega"),
+            content=ft.Container(ft.Column([campo("Buscar por nombre o ubicación", prefix_icon=ft.Icons.SEARCH,
+                                                  on_change=al_buscar, autofocus=True),
+                                            ft.Container(lista, height=320)], spacing=8), width=480),
+            actions=[ft.TextButton("Cerrar", on_click=lambda _: app.page.pop_dialog())]))
 
     pintar_categorias()
     pintar_puntos()
@@ -147,6 +187,6 @@ def pantalla_publicar(app) -> ft.Control:
         seccion("1. ¿Qué encontraste?"), chips_cat, aviso_doc, desc, seccion_foto,
         seccion("2. ¿Dónde y cuándo?"), lugar,
         ft.Row([dia], scroll=ft.ScrollMode.AUTO), texto_fecha, ft.Row([momento], scroll=ft.ScrollMode.AUTO),
-        seccion("3. ¿Dónde lo dejas?"), tarjetas_punto,
+        seccion("3. ¿Dónde lo dejas?"), zona_punto,
         ft.Row([boton("Publicar", enviar, ft.Icons.PUBLISH)]),
     ], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)

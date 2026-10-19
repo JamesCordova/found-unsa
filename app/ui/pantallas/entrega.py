@@ -57,4 +57,4 @@ def pantalla_entrega(app) -> ft.Control:
 
     codigo.on_submit = buscar
     return ft.Column([titulo("Entrega", "Valida el código y verifica la identidad"), codigo,
-                      ft.Row([boton("Validar código", buscar, ft.Icons.SEARCH)]), resultado], spacing=12)
+                      ft.Row([boton("Validar código", buscar, ft.Icons.SEARCH)]), resultado], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)

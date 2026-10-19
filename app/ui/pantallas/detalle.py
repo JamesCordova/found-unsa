@@ -1,7 +1,7 @@
 """Pantalla: detalle del objeto."""
 import flet as ft
 
-from app.ui.componentes import atras, boton, chip_estado, hace, imagen_objeto, titulo
+from app.ui.componentes import boton, chip_estado, hace, imagen_completa, titulo
 
 
 def pantalla_detalle(app, o: dict) -> ft.Control:
@@ -9,8 +9,7 @@ def pantalla_detalle(app, o: dict) -> ft.Control:
     accion = (ft.Text("Tú publicaste este objeto: no puedes reclamarlo.", size=16, italic=True)
               if propio else boton("Es mío", lambda _: app.ir(vista=("reclamar", o)), ft.Icons.BACK_HAND))
     return ft.Column([
-        ft.Row([atras(app, "Catálogo")]),
-        imagen_objeto(o, ancho=None, alto=220, radio=16),
+        imagen_completa(app, o),
         titulo(o["categoria"]),
         ft.Row([chip_estado("EN_CUSTODIA")]),
         ft.Text(o["descripcion_publica"], size=18),

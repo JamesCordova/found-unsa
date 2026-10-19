@@ -76,10 +76,6 @@ def boton_tema(app) -> ft.Control:
                          on_click=app.alternar_tema)
 
 
-def atras(app, texto="Volver"):
-    return ft.TextButton(texto, icon=ft.Icons.ARROW_BACK, on_click=lambda _: app.ir(vista=None))
-
-
 def imagen_objeto(o: dict, ancho: int | None = 88, alto: int = 88, radio: int = 12) -> ft.Control:
     """Foto del objeto desde su enlace; si no hay o falla, ícono de la categoría."""
     lado = min(ancho or alto, alto)
@@ -108,3 +104,30 @@ def hace(fecha: str) -> str:
 
 def es_nuevo(o: dict) -> bool:
     return bool(o.get("recibido_en")) and datetime.now() - datetime.fromisoformat(o["recibido_en"]) < timedelta(hours=48)
+
+
+def ver_imagen_completa(app, o: dict) -> None:
+    """Abre la foto completa en un diálogo, con zoom y desplazamiento."""
+    if not o.get("foto_url"):
+        return
+    app.page.show_dialog(ft.AlertDialog(
+        title=ft.Text(o["categoria"]),
+        content=ft.Container(ft.InteractiveViewer(
+            content=ft.Image(src=o["foto_url"], fit=ft.BoxFit.CONTAIN,
+                             error_content=ft.Text("No se pudo cargar la imagen.")),
+            min_scale=1, max_scale=5), width=600, height=480),
+        actions=[ft.TextButton("Cerrar", on_click=lambda _: app.page.pop_dialog())]))
+
+
+def imagen_completa(app, o: dict, alto: int = 220) -> ft.Control:
+    """Foto en formato banner; al tocarla se abre el visor con la imagen entera."""
+    if not o.get("foto_url"):
+        return imagen_objeto(o, ancho=None, alto=alto // 2, radio=16)
+    return ft.Container(
+        ft.Stack([
+            imagen_objeto(o, ancho=None, alto=alto, radio=16),
+            ft.Container(ft.Icon(ft.Icons.ZOOM_OUT_MAP, size=18, color=ft.Colors.WHITE), right=8, bottom=8,
+                         padding=6, border_radius=20, bgcolor=ft.Colors.with_opacity(0.55, ft.Colors.BLACK)),
+        ], fit=ft.StackFit.EXPAND),  # EXPAND: la imagen ocupa todo el ancho del contenedor
+        height=alto, border_radius=16, ink=True, tooltip="Toca para ver la imagen completa",
+        on_click=lambda _: ver_imagen_completa(app, o))

@@ -25,4 +25,4 @@ def pantalla_bitacora(app) -> ft.Control:
     filtro.on_change = al_filtrar
     cargar()
     return ft.Column([titulo("Bitácora de auditoría", "Registro inmutable de cada cambio"),
-                      filtro, lista], spacing=12)
+                      filtro, lista], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)

@@ -42,8 +42,10 @@ def pantalla_catalogo(app) -> ft.Control:
         app.page.update()
 
     buscar = campo("Buscar por descripción o lugar", prefix_icon=ft.Icons.SEARCH, value=app.filtro["texto"],
-                   on_change=al_buscar,
-                   suffix=ft.IconButton(ft.Icons.CLEAR, tooltip="Borrar búsqueda", on_click=limpiar))
+                   on_change=al_buscar, height=48, dense=True,
+                   content_padding=ft.Padding.symmetric(horizontal=12, vertical=0),
+                   suffix=ft.IconButton(ft.Icons.CLEAR, icon_size=18, padding=0, tooltip="Borrar búsqueda",
+                                        on_click=limpiar))
     filtros = [buscar, chips]
     if len(puntos) > 1:
         def al_elegir_punto(e):
@@ -56,7 +58,7 @@ def pantalla_catalogo(app) -> ft.Control:
                     [ft.DropdownOption(key=str(x["id"]), text=x["nombre"]) for x in puntos])]))
     refrescar()
     return ft.Column([titulo("Objetos en custodia", "Hallados y guardados en un punto oficial"),
-                      *filtros, contador, lista], spacing=12)
+                      *filtros, contador, lista], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
 
 def tarjeta_objeto(app, o: dict) -> ft.Control:

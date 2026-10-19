@@ -5,6 +5,14 @@ from app import datos as db
 from app.ui.componentes import chip_estado, imagen_objeto, tiempo_restante, titulo, vacio
 
 
+def copiar_codigo(app, codigo: str):
+    """Devuelve el manejador async del botón (Flet solo espera funciones async directas)."""
+    async def copiar(_):
+        await app.portapapeles.set(codigo)
+        app.aviso("Código copiado")
+    return copiar
+
+
 def pantalla_mis_reclamos(app) -> ft.Control:
     items = db.mis_reclamos(app.user["id"])
     tarjetas: list[ft.Control] = []
@@ -18,9 +26,12 @@ def pantalla_mis_reclamos(app) -> ft.Control:
         if r["estado"] == "activo":
             fila += [
                 ft.Text("Tu código de retiro", size=13, color=ft.Colors.ON_SURFACE_VARIANT),
-                ft.Container(ft.Text(r["codigo"], size=40, weight="bold", font_family="monospace"),
+                ft.Container(ft.Text(r["codigo"], size=40, weight="bold", font_family="monospace",
+                                     selectable=True),
                              alignment=ft.Alignment.CENTER, padding=8,
                              bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST, border_radius=8),
+                ft.Row([ft.FilledTonalButton("Copiar código", icon=ft.Icons.CONTENT_COPY, height=44, expand=True,
+                                             on_click=copiar_codigo(app, r["codigo"]))]),
                 ft.Text(f"Vence: {tiempo_restante(r['vence_en'])}", size=16),
                 ft.Text(f"Retira en {r['punto']} · {r['ubicacion']} · {r['horario']}", size=14),
                 ft.Text("Lleva tu carné o DNI.", size=14, italic=True),
@@ -38,4 +49,4 @@ def pantalla_mis_reclamos(app) -> ft.Control:
     return ft.Column([
         titulo("Mis reclamos", f"Máximo {db.MAX_RECLAMOS_ACTIVOS} activos a la vez"),
         *(tarjetas or [vacio("No tienes reclamos.\nBusca tu objeto en el catálogo y toca «Es mío».",
-                             ft.Icons.CONFIRMATION_NUMBER)])], spacing=12)
+                             ft.Icons.CONFIRMATION_NUMBER)])], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)

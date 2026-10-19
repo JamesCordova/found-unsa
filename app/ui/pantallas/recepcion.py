@@ -37,4 +37,4 @@ def pantalla_recepcion(app) -> ft.Control:
         ], spacing=8), padding=14)))
     return ft.Column([titulo("Recepción", "Publicaciones pendientes de confirmar"),
                       *(tarjetas or [vacio("No hay publicaciones pendientes.\n¡Todo al día!",
-                                           ft.Icons.TASK_ALT)])], spacing=12)
+                                           ft.Icons.TASK_ALT)])], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
