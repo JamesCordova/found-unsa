@@ -17,3 +17,13 @@ usuario@ · otro@ (usuarios) · funcionario@ · admin@ + `unsa.edu.pe`
 2. `funcionario`: Recepción → confirmar con detalle oculto.
 3. `otro`: Catálogo → Es mío → copiar el código en Mis reclamos.
 4. `funcionario`: Entrega → código, marcar verificación de DNI → Entregar. Ver Bitácora.
+
+## Estructura
+    main.py                  punto de entrada
+    app/datos/               SQLite y reglas de negocio (una responsabilidad por archivo)
+      config.py conexion.py esquema.py permisos.py auditoria.py vencimientos.py
+      cuentas.py publicaciones.py catalogo.py reclamos.py entregas.py administracion.py
+    app/ui/
+      aplicacion.py          sesión, navegación por rol y render
+      tema.py componentes.py colores de estado, fuentes, tema; widgets reutilizables
+      pantallas/             una pantalla por archivo
