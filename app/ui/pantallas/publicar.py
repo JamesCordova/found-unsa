@@ -22,7 +22,7 @@ def pantalla_publicar(app) -> ft.Control:
     def al_cambiar_cat(_):
         if cat.value == "Documentos y tarjetas":
             aviso_doc.value = ("En documentos y tarjetas no se publica foto, y la descripción no debe "
-                               "incluir nombres ni números (RN-08).")
+                               "incluir nombres ni números.")
         else:
             aviso_doc.value = ""
         app.page.update()
@@ -38,7 +38,7 @@ def pantalla_publicar(app) -> ft.Control:
     return ft.Column([
         titulo("Publicar un hallazgo", "Después déjalo físicamente en el punto elegido"),
         caja_aviso(ft.Text("No publiques dinero, armas, medicamentos ni sustancias: entrégalos "
-                                "directamente al funcionario (RN-09).", size=14)),
+                           "directamente al funcionario.", size=14)),
         cat, aviso_doc, desc, lugar, fecha, punto,
         ft.Row([boton("Publicar", enviar, ft.Icons.PUBLISH)]),
-    ], spacing=12)
+    ], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)

@@ -30,6 +30,9 @@ def conectar():
     con.execute("PRAGMA foreign_keys = ON")
     try:
         with con:
+            if not con.execute("SELECT 1 FROM sqlite_master WHERE name='perfiles'").fetchone():
+                from .esquema import crear_base  # import tardío: esquema usa conectar
+                crear_base(con)
             yield con
     finally:
         con.close()

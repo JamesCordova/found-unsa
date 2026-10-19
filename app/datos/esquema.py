@@ -44,28 +44,32 @@ CREATE TRIGGER IF NOT EXISTS auditoria_sin_delete BEFORE DELETE ON auditoria
 """
 
 
-def iniciar() -> None:
+def crear_base(con) -> None:
     """Crea las tablas y, la primera vez, las cuentas y puntos de demostración."""
-    with conectar() as con:
-        con.executescript(SCHEMA)
-        if con.execute("SELECT COUNT(*) FROM perfiles").fetchone()[0]:
-            return
-        ahora = a_texto(hora_actual())
-        for email, nombre, rol in [
-            ("usuario@unsa.edu.pe", "Ana Usuario", "usuario"),
-            ("otro@unsa.edu.pe", "Luis Usuario", "usuario"),
-            ("funcionario@unsa.edu.pe", "Rosa Portería", "funcionario"),
-            ("admin@unsa.edu.pe", "Admin UNSA", "admin"),
-        ]:
-            con.execute(
-                "INSERT INTO perfiles(email,nombre,clave,rol,creado_en) VALUES (?,?,?,?,?)",
-                (email, nombre, hash_clave("1234"), rol, ahora),
-            )
-        for nombre, ubic, horario in [
-            ("Portería principal", "Ingreso por la Av. Independencia", "Lun-Vie 7:00-19:00"),
-            ("Secretaría de Ingeniería", "Pabellón de Ingeniería, 1.er piso", "Lun-Vie 8:00-16:00"),
-        ]:
-            con.execute(
-                "INSERT INTO puntos_entrega(nombre,ubicacion,horario) VALUES (?,?,?)",
-                (nombre, ubic, horario),
-            )
+    con.executescript(SCHEMA)
+    if con.execute("SELECT COUNT(*) FROM perfiles").fetchone()[0]:
+        return
+    ahora = a_texto(hora_actual())
+    for email, nombre, rol in [
+        ("usuario@unsa.edu.pe", "Ana Usuario", "usuario"),
+        ("otro@unsa.edu.pe", "Luis Usuario", "usuario"),
+        ("funcionario@unsa.edu.pe", "Rosa Portería", "funcionario"),
+        ("admin@unsa.edu.pe", "Admin UNSA", "admin"),
+    ]:
+        con.execute(
+            "INSERT INTO perfiles(email,nombre,clave,rol,creado_en) VALUES (?,?,?,?,?)",
+            (email, nombre, hash_clave("1234"), rol, ahora),
+        )
+    for nombre, ubic, horario in [
+        ("Portería principal", "Ingreso por la Av. Independencia", "Lun-Vie 7:00-19:00"),
+        ("Secretaría de Ingeniería", "Pabellón de Ingeniería, 1.er piso", "Lun-Vie 8:00-16:00"),
+    ]:
+        con.execute(
+            "INSERT INTO puntos_entrega(nombre,ubicacion,horario) VALUES (?,?,?)",
+            (nombre, ubic, horario),
+        )
+
+
+def iniciar() -> None:
+    with conectar():  # conectar() crea la base si falta
+        pass

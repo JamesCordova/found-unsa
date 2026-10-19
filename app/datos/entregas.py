@@ -33,7 +33,7 @@ def buscar_codigo(actor, codigo) -> dict:
 
 def entregar(actor, rid, identidad_verificada: bool) -> None:
     if not identidad_verificada:
-        raise ReglaError("Debes confirmar que verificaste el carné o DNI (RN-07).")
+        raise ReglaError("Debes confirmar que verificaste el carné o DNI.")
     with conectar() as con:
         exigir_staff(con, actor)
         con.execute("BEGIN IMMEDIATE")  # evita doble entrega simultánea
