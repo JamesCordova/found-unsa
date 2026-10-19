@@ -44,7 +44,7 @@ def mis_reclamos(uid) -> list[dict]:
     with conectar() as con:
         limpiar_estados(con)
         return [dict(r) for r in con.execute(
-            "SELECT r.*, o.descripcion_publica, o.estado AS estado_objeto, p.nombre AS punto, "
+            "SELECT r.*, o.descripcion_publica, o.categoria, o.foto_url, o.estado AS estado_objeto, p.nombre AS punto, "
             "p.ubicacion, p.horario FROM reclamos r JOIN objetos o ON o.id=r.objeto_id "
             "JOIN puntos_entrega p ON p.id=o.punto_id WHERE r.reclamante_id=? ORDER BY r.id DESC", (uid,))]
 

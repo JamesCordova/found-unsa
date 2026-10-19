@@ -12,8 +12,8 @@ def puntos_activos() -> list[dict]:
         return [dict(r) for r in con.execute("SELECT * FROM puntos_entrega WHERE activo=1")]
 
 
-def publicar(uid, categoria, descripcion, lugar, fecha_txt, punto_id) -> None:
-    descripcion, lugar = descripcion.strip(), lugar.strip()
+def publicar(uid, categoria, descripcion, lugar, fecha_txt, punto_id, foto_url="") -> None:
+    descripcion, lugar, foto_url = descripcion.strip(), lugar.strip(), (foto_url or "").strip()
     if categoria not in CATEGORIAS:
         raise ReglaError("Elige una categoría.")
     if not descripcion or len(descripcion) > 280:
@@ -22,6 +22,10 @@ def publicar(uid, categoria, descripcion, lugar, fecha_txt, punto_id) -> None:
         raise ReglaError("Indica dónde lo encontraste.")
     if not punto_id:
         raise ReglaError("Elige el punto de entrega.")
+    if categoria == "Documentos y tarjetas":
+        foto_url = ""  # PU-03: en documentos no se muestra foto
+    elif foto_url and (not foto_url.lower().startswith(("http://", "https://")) or len(foto_url) > 500):
+        raise ReglaError("El enlace de la foto debe empezar con http:// o https:// (máximo 500 caracteres).")
     try:
         fecha = datetime.strptime(fecha_txt.strip(), "%Y-%m-%d %H:%M")
     except ValueError:
@@ -34,8 +38,9 @@ def publicar(uid, categoria, descripcion, lugar, fecha_txt, punto_id) -> None:
             raise ReglaError("Tu cuenta está bloqueada.")
         cur = con.execute(
             "INSERT INTO objetos(categoria,descripcion_publica,lugar_hallazgo,fecha_hallazgo,"
-            "publicado_por,punto_id,creado_en) VALUES (?,?,?,?,?,?,?)",
-            (categoria, descripcion, lugar, a_texto(fecha), uid, punto_id, a_texto(hora_actual())),
+            "foto_url,publicado_por,punto_id,creado_en) VALUES (?,?,?,?,?,?,?,?)",
+            (categoria, descripcion, lugar, a_texto(fecha), foto_url or None, uid, punto_id,
+             a_texto(hora_actual())),
         )
         auditar(con, "publicacion_creada", uid, cur.lastrowid, despues="PENDIENTE_RECEPCION")
 

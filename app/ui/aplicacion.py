@@ -1,6 +1,7 @@
 """Núcleo de la interfaz: sesión, navegación por rol y renderizado."""
 import flet as ft
 
+from app import datos as db
 from app.datos import ReglaError
 from app.ui.componentes import atras, boton_tema, marca
 from app.ui.pantallas.admin import pantalla_admin
@@ -61,6 +62,16 @@ class App:
         if despues:
             despues()
 
+    def confirmar(self, titulo: str, texto: str, accion, etiqueta: str = "Confirmar"):
+        """Diálogo de confirmación para acciones que no se pueden deshacer."""
+        def si(_):
+            self.page.pop_dialog()
+            accion()
+        self.page.show_dialog(ft.AlertDialog(
+            title=ft.Text(titulo), content=ft.Text(texto, size=16),
+            actions=[ft.TextButton("Volver", on_click=lambda _: self.page.pop_dialog()),
+                     ft.FilledButton(etiqueta, on_click=si)]))
+
     def alternar_tema(self, _=None):
         oscuro = self.page.theme_mode == ft.ThemeMode.DARK
         self.page.theme_mode = ft.ThemeMode.LIGHT if oscuro else ft.ThemeMode.DARK
@@ -107,9 +118,12 @@ class App:
                                  on_click=self.alternar_tema),
                 ft.PopupMenuItem(icon=ft.Icons.LOGOUT, content="Cerrar sesión",
                                  on_click=lambda _: self.cerrar_sesion())])])
+        pendientes = len(db.pendientes()) if self.user["rol"] != "usuario" else 0
         p.navigation_bar = ft.NavigationBar(
             selected_index=self.tab,
-            destinations=[ft.NavigationBarDestination(icon=i, label=t) for t, i, _ in pestanias],
+            destinations=[ft.NavigationBarDestination(
+                icon=ft.Icon(i, badge=ft.Badge(label=str(pendientes)) if t == "Recepción" and pendientes else None),
+                label=t) for t, i, _ in pestanias],
             on_change=lambda e: self.ir(tab=e.control.selected_index))
         if self.vista:
             nombre, dato = self.vista

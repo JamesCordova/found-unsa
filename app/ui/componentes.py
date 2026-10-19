@@ -1,9 +1,9 @@
 """Widgets reutilizables: marca, campos, botones, chips de estado."""
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import flet as ft
 
-from app.ui.tema import ESTADOS
+from app.ui.tema import CATEGORIA_ICONOS, ESTADOS
 
 
 def chip_estado(estado: str) -> ft.Control:
@@ -78,3 +78,33 @@ def boton_tema(app) -> ft.Control:
 
 def atras(app, texto="Volver"):
     return ft.TextButton(texto, icon=ft.Icons.ARROW_BACK, on_click=lambda _: app.ir(vista=None))
+
+
+def imagen_objeto(o: dict, ancho: int | None = 88, alto: int = 88, radio: int = 12) -> ft.Control:
+    """Foto del objeto desde su enlace; si no hay o falla, ícono de la categoría."""
+    lado = min(ancho or alto, alto)
+    respaldo = ft.Container(
+        ft.Icon(CATEGORIA_ICONOS.get(o.get("categoria"), ft.Icons.CATEGORY), size=lado * 0.45,
+                color=ft.Colors.ON_SURFACE_VARIANT),
+        width=ancho, height=alto, alignment=ft.Alignment.CENTER,
+        bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST, border_radius=radio)
+    if not o.get("foto_url"):
+        return respaldo
+    return ft.Image(src=o["foto_url"], width=ancho, height=alto, fit=ft.BoxFit.COVER, border_radius=radio,
+                    error_content=respaldo)
+
+
+def hace(fecha: str) -> str:
+    """'2026-10-18 09:30:00' -> 'hace 3 h', 'ayer', 'hace 4 días'."""
+    delta = datetime.now() - datetime.fromisoformat(fecha)
+    if delta < timedelta(hours=1):
+        return "hace unos minutos"
+    if delta < timedelta(days=1):
+        return f"hace {int(delta.total_seconds() // 3600)} h"
+    if delta < timedelta(days=2):
+        return "ayer"
+    return f"hace {delta.days} días"
+
+
+def es_nuevo(o: dict) -> bool:
+    return bool(o.get("recibido_en")) and datetime.now() - datetime.fromisoformat(o["recibido_en"]) < timedelta(hours=48)

@@ -15,6 +15,10 @@ ESTADOS = {  # texto + color + icono: nunca solo color
 }
 # Columnas (de 12) que ocupa el contenido según el ancho de pantalla: en celular todo el ancho,
 # en pantallas grandes una columna central.
+CATEGORIA_ICONOS = {
+    "Electrónicos": ft.Icons.HEADPHONES, "Documentos y tarjetas": ft.Icons.BADGE, "Llaves": ft.Icons.VPN_KEY,
+    "Ropa y accesorios": ft.Icons.CHECKROOM, "Útiles y libros": ft.Icons.MENU_BOOK, "Otros": ft.Icons.CATEGORY,
+}
 COLUMNAS_CONTENIDO = {"xs": 12, "lg": 8, "xl": 6}
 COLUMNAS_LOGIN = {"xs": 12, "sm": 9, "md": 6, "lg": 4}
 

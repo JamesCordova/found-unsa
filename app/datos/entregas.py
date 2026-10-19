@@ -12,7 +12,7 @@ def buscar_codigo(actor, codigo) -> dict:
         exigir_staff(con, actor)
         limpiar_estados(con)
         r = con.execute(
-            "SELECT r.*, u.nombre AS reclamante, u.email AS reclamante_email, o.categoria, "
+            "SELECT r.*, u.nombre AS reclamante, u.email AS reclamante_email, o.categoria, o.foto_url, "
             "o.descripcion_publica, o.estado AS estado_objeto, p.nombre AS punto, op.detalle_oculto "
             "FROM reclamos r JOIN perfiles u ON u.id=r.reclamante_id JOIN objetos o ON o.id=r.objeto_id "
             "JOIN puntos_entrega p ON p.id=o.punto_id "

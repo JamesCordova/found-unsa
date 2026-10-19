@@ -8,4 +8,4 @@ from .publicaciones import puntos_activos, publicar, mis_publicaciones, cancelar
 from .catalogo import catalogo
 from .reclamos import crear_reclamo, mis_reclamos, cancelar_reclamo
 from .entregas import buscar_codigo, entregar, rechazar_reclamo
-from .administracion import usuarios, cambiar_rol, bloquear
+from .administracion import usuarios, cambiar_rol, bloquear, puntos_todos, guardar_punto, activar_punto

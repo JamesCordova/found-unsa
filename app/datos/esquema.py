@@ -1,4 +1,5 @@
-"""Tablas, triggers y datos de demostración."""
+"""Tablas, triggers y migración de la base."""
+from .demo import sembrar_demo
 from .conexion import a_texto, conectar, hash_clave, hora_actual
 
 
@@ -16,7 +17,7 @@ CREATE TABLE IF NOT EXISTS objetos (
   lugar_hallazgo TEXT NOT NULL, fecha_hallazgo TEXT NOT NULL,
   estado TEXT NOT NULL DEFAULT 'PENDIENTE_RECEPCION'
     CHECK (estado IN ('PENDIENTE_RECEPCION','EN_CUSTODIA','ENTREGADO','RECHAZADO','ARCHIVADO')),
-  motivo TEXT, publicado_por INTEGER NOT NULL REFERENCES perfiles(id),
+  motivo TEXT, foto_url TEXT, publicado_por INTEGER NOT NULL REFERENCES perfiles(id),
   punto_id INTEGER NOT NULL REFERENCES puntos_entrega(id),
   recibido_por INTEGER REFERENCES perfiles(id), recibido_en TEXT,
   creado_en TEXT NOT NULL);
@@ -68,6 +69,16 @@ def crear_base(con) -> None:
             "INSERT INTO puntos_entrega(nombre,ubicacion,horario) VALUES (?,?,?)",
             (nombre, ubic, horario),
         )
+
+
+def asegurar_esquema(con) -> None:
+    """Crea la base si falta, agrega columnas nuevas a bases antiguas y siembra datos de demostración."""
+    if not con.execute("SELECT 1 FROM sqlite_master WHERE name='perfiles'").fetchone():
+        crear_base(con)
+    elif "foto_url" not in {r[1] for r in con.execute("PRAGMA table_info(objetos)")}:
+        con.execute("ALTER TABLE objetos ADD COLUMN foto_url TEXT")
+    if not con.execute("SELECT 1 FROM objetos").fetchone() and not con.execute("SELECT 1 FROM auditoria").fetchone():
+        sembrar_demo(con)
 
 
 def iniciar() -> None:
