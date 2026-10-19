@@ -32,21 +32,22 @@ def pantalla_catalogo(app) -> ft.Control:
 
     def al_buscar(e):
         app.filtro["texto"] = e.control.value or ""
+        borrar.visible = bool(app.filtro["texto"])
         refrescar()
         app.page.update()
 
     def limpiar(_):
         app.filtro["texto"] = ""
         buscar.value = ""
+        borrar.visible = False
         refrescar()
         app.page.update()
 
     buscar = campo("Buscar por descripción o lugar", prefix_icon=ft.Icons.SEARCH, value=app.filtro["texto"],
-                   on_change=al_buscar, height=48, dense=True,
-                   content_padding=ft.Padding.symmetric(horizontal=12, vertical=0),
-                   suffix=ft.IconButton(ft.Icons.CLEAR, icon_size=18, padding=0, tooltip="Borrar búsqueda",
-                                        on_click=limpiar))
-    filtros = [buscar, chips]
+                   on_change=al_buscar, expand=True)
+    borrar = ft.IconButton(ft.Icons.CLEAR, tooltip="Borrar búsqueda", on_click=limpiar,
+                           visible=bool(app.filtro["texto"]))  # fuera del campo: no altera el centrado del texto
+    filtros = [ft.Row([buscar, borrar], vertical_alignment=ft.CrossAxisAlignment.CENTER), chips]
     if len(puntos) > 1:
         def al_elegir_punto(e):
             app.filtro["punto"] = e.control.value or ""
