@@ -107,16 +107,9 @@ def es_nuevo(o: dict) -> bool:
 
 
 def ver_imagen_completa(app, o: dict) -> None:
-    """Abre la foto completa en un diálogo, con zoom y desplazamiento."""
-    if not o.get("foto_url"):
-        return
-    app.page.show_dialog(ft.AlertDialog(
-        title=ft.Text(o["categoria"]),
-        content=ft.Container(ft.InteractiveViewer(
-            content=ft.Image(src=o["foto_url"], fit=ft.BoxFit.CONTAIN,
-                             error_content=ft.Text("No se pudo cargar la imagen.")),
-            min_scale=1, max_scale=5), width=600, height=480),
-        actions=[ft.TextButton("Cerrar", on_click=lambda _: app.page.pop_dialog())]))
+    """Abre la foto a pantalla completa (visor con zoom, como en una app de mensajería)."""
+    if o.get("foto_url"):
+        app.ir(vista=("imagen", o))
 
 
 def imagen_completa(app, o: dict, alto: int = 220) -> ft.Control:

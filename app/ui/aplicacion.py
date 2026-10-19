@@ -98,11 +98,31 @@ class App:
             return PESTANIAS_USUARIO
         return PESTANIAS_STAFF + ([PESTANIA_ADMIN] if self.user["rol"] == "admin" else []) + [PESTANIA_PERFIL]
 
+    def render_visor(self, o: dict):
+        """Visor de imagen a pantalla completa: fondo negro, la foto ocupa todo y se puede ampliar."""
+        p = self.page
+        p.bgcolor = ft.Colors.BLACK
+        p.appbar = ft.AppBar(
+            title=ft.Text(o["categoria"], color=ft.Colors.WHITE), center_title=True, toolbar_height=64,
+            bgcolor=ft.Colors.BLACK, leading_width=64,
+            leading=ft.IconButton(ft.Icons.ARROW_BACK, icon_size=28, icon_color=ft.Colors.WHITE, tooltip="Volver",
+                                  on_click=lambda _: self.ir(vista=("detalle", o))))
+        alto = max(300, (p.height or 700) - 64)
+        p.add(ft.SafeArea(expand=True, content=ft.InteractiveViewer(
+            expand=True, min_scale=1, max_scale=6,
+            content=ft.Image(src=o["foto_url"], width=p.width, height=alto, fit=ft.BoxFit.CONTAIN,
+                             error_content=ft.Text("No se pudo cargar la imagen.", color=ft.Colors.WHITE)))))
+        p.update()
+
     def render(self):
         p = self.page
         p.controls.clear()
         p.appbar = None
         p.navigation_bar = None
+        p.bgcolor = None
+        if self.user and self.vista and self.vista[0] == "imagen":
+            self.render_visor(self.vista[1])
+            return
         if not self.user:
             p.appbar = ft.AppBar(actions=[boton_tema(self)], bgcolor=ft.Colors.TRANSPARENT)
             p.add(ft.SafeArea(expand=True, content=ft.Column(
