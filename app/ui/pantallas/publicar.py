@@ -104,39 +104,22 @@ def pantalla_publicar(app) -> ft.Control:
         hallazgo = datetime.combine(d, time(MOMENTOS[est["momento"]][1]))
         return min(hallazgo, datetime.now()).strftime("%Y-%m-%d %H:%M")  # nunca en el futuro
 
-    # --- punto de entrega: con pocos, tarjetas; con muchos, un selector con búsqueda ---
-    UMBRAL_TARJETAS = 3
-    zona_punto = ft.Column(spacing=8)
+    # --- punto de entrega: un solo campo que abre una lista con buscador (sirve con 2 o con 200 puntos) ---
+    zona_punto = ft.Column(spacing=6)
 
     def punto_actual() -> dict | None:
         return next((p for p in puntos if p["id"] == est["punto"]), None)
 
-    def datos_punto(p: dict) -> ft.Control:
-        return ft.Column([ft.Text(p["nombre"], weight="bold", size=16),
-                          ft.Text(f"{p['ubicacion']} · {p['horario']}", size=13,
-                                  color=ft.Colors.ON_SURFACE_VARIANT)], spacing=2, expand=True)
-
     def pintar_puntos():
-        if len(puntos) > UMBRAL_TARJETAS:  # selector compacto: ocupa lo mismo con 4 o con 400 puntos
-            p = punto_actual()
-            zona_punto.controls = [ft.Container(
-                ft.Row([ft.Icon(ft.Icons.STORE), datos_punto(p) if p else ft.Text("Elige un punto", expand=True),
-                        ft.Icon(ft.Icons.UNFOLD_MORE)], spacing=12),
-                padding=12, border_radius=12, ink=True, border=ft.Border.all(1, ft.Colors.OUTLINE),
-                on_click=lambda _: abrir_selector()),
-                ft.Text(f"{len(puntos)} puntos disponibles. Toca para buscar o cambiar.", size=13,
-                        color=ft.Colors.ON_SURFACE_VARIANT)]
-            return
-        zona_punto.controls = []
-        for p in puntos:
-            activo = est["punto"] == p["id"]
-            zona_punto.controls.append(ft.Container(
-                ft.Row([ft.Icon(ft.Icons.RADIO_BUTTON_CHECKED if activo else ft.Icons.RADIO_BUTTON_UNCHECKED,
-                                color=ft.Colors.INDIGO if activo else ft.Colors.OUTLINE), datos_punto(p)],
-                       spacing=12),
-                padding=12, border_radius=12, ink=True,
-                border=ft.Border.all(2 if activo else 1, ft.Colors.INDIGO if activo else ft.Colors.OUTLINE_VARIANT),
-                on_click=lambda _, pid=p["id"]: elegir_punto(pid)))
+        p = punto_actual()
+        detalle = (ft.Column([ft.Text(p["nombre"], weight="bold", size=16),
+                              ft.Text(f"{p['ubicacion']} · {p['horario']}", size=13,
+                                      color=ft.Colors.ON_SURFACE_VARIANT)], spacing=2, expand=True)
+                   if p else ft.Text("Elige un punto de entrega", size=16, expand=True))
+        zona_punto.controls = [ft.Container(
+            ft.Row([ft.Icon(ft.Icons.STORE), detalle, ft.Icon(ft.Icons.UNFOLD_MORE)], spacing=12),
+            padding=12, border_radius=12, ink=True, border=ft.Border.all(1, ft.Colors.OUTLINE),
+            on_click=lambda _: abrir_selector())]
 
     def elegir_punto(pid):
         est["punto"] = pid
