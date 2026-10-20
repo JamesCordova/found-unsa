@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Validate required Supabase secrets
+      - name: Validate optional Supabase secrets
         run: |
           python - <<'PY'
           import os
@@ -46,14 +46,16 @@ jobs:
               if not os.environ.get(key, "").strip()
           ]
           if missing:
-              raise SystemExit(
-                  "Faltan secrets requeridos en el repositorio: "
+              print(
+                  "Secrets de Supabase no configurados para el build web: "
                   + ", ".join(missing)
               )
-          print("Secrets de Supabase configurados.")
+          else:
+              print("Secrets de Supabase configurados.")
           PY
 
       - name: Generate web Supabase config
+        if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_KEY != '' }}
         run: |
           python - <<'PY'
           import os
@@ -69,6 +71,10 @@ jobs:
           Path("app/datos/config_web.py").write_text(contenido, encoding="utf-8")
           print("config_web.py generado.")
           PY
+
+      - name: Skip web Supabase config generation
+        if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_KEY == '' }}
+        run: echo "Saltando config_web.py porque no hay secrets de Supabase."
 
       - name: Build Flet web app
         run: |
