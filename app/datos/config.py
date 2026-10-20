@@ -2,6 +2,11 @@
 import os
 from pathlib import Path
 
+try:
+    from . import config_web as _config_web
+except ImportError:
+    _config_web = None
+
 DOMINIO = "@unsa.edu.pe"
 CATEGORIAS = [
     "Electrónicos",
@@ -35,6 +40,8 @@ def _leer_env() -> dict[str, str]:
 
 
 _ENV = _leer_env()
-SUPABASE_URL = _ENV.get("SUPABASE_URL", "").rstrip("/")
-SUPABASE_KEY = _ENV.get("SUPABASE_KEY", "")  # clave publicable (anon): es pública por diseño; NUNCA la service_role
+SUPABASE_URL = getattr(_config_web, "SUPABASE_URL", "").rstrip("/") or _ENV.get("SUPABASE_URL", "").rstrip("/")
+SUPABASE_KEY = getattr(_config_web, "SUPABASE_KEY", "") or _ENV.get(
+    "SUPABASE_KEY", ""
+)  # clave publicable (anon): es pública por diseño; NUNCA la service_role
 DEMO_CLAVE = _ENV.get("DEMO_CLAVE", "")  # si está definida, el login muestra el acceso rápido de demostración

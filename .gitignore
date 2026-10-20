@@ -25,6 +25,7 @@ storage/
 # Variables de entorno y secretos
 .env
 .env.*
+app/datos/config_web.py
 
 # Editor y sistema
 .vscode/
