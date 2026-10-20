@@ -44,4 +44,6 @@ SUPABASE_URL = getattr(_config_web, "SUPABASE_URL", "").rstrip("/") or _ENV.get(
 SUPABASE_KEY = getattr(_config_web, "SUPABASE_KEY", "") or _ENV.get(
     "SUPABASE_KEY", ""
 )  # clave publicable (anon): es pública por diseño; NUNCA la service_role
-DEMO_CLAVE = _ENV.get("DEMO_CLAVE", "")  # si está definida, el login muestra el acceso rápido de demostración
+DEMO_CLAVE = getattr(_config_web, "DEMO_CLAVE", "") or _ENV.get(
+    "DEMO_CLAVE", ""
+)  # si está definida, el login muestra el acceso rápido de demostración

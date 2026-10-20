@@ -22,6 +22,7 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      DEMO_CLAVE: ${{ secrets.DEMO_CLAVE }}
 
     steps:
       - name: Checkout
@@ -61,10 +62,12 @@ jobs:
 
           url = os.environ["SUPABASE_URL"].strip().rstrip("/")
           key = os.environ["SUPABASE_KEY"].strip()
+          demo_clave = os.environ.get("DEMO_CLAVE", "").strip()
           contenido = (
               '"""Configuración generada en CI para despliegue web."""\n'
               f"SUPABASE_URL = {url!r}\n"
               f"SUPABASE_KEY = {key!r}\n"
+              f"DEMO_CLAVE = {demo_clave!r}\n"
           )
           Path("app/datos/config_web.py").write_text(contenido, encoding="utf-8")
           print("config_web.py generado.")
